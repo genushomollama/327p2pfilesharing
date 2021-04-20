@@ -144,11 +144,11 @@ If any are found, try to join that overlay network.
 If none are found, then start a new overlay network.
 The architecture of this network is that of a simple doubly linked-list.
 '''
-live_hosts = extractAddress() # check ARP table for other hosts on the LAN
-print("Addresses extracted: ", live_hosts) # FIXME for debug purposes
-if len(live_hosts) == 0: # start fresh network
-    currentNode.setNodeID(0)
-# else: # attempt to join an existing network # FIXME start uncomment this block after debugging
+# live_hosts = extractAddress() # check ARP table for other hosts on the LAN # FIXME start uncomment this block after debugging
+# print("Addresses extracted: ", live_hosts) # FIXME for debug purposes
+# if len(live_hosts) == 0: # start fresh network
+#     currentNode.setNodeID(0)
+# else: # attempt to join an existing network
 #     currentHost = 0 # contact lowest addressed host first
 #     searching = True
 #     while searching:
