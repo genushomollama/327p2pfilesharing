@@ -225,9 +225,10 @@ class ClientThread(threading.Thread):
             next_addr = self.node.getNext()
             if last_addr == next_addr:
                 print("Sending leave request to {}".format(last_addr))
-                success = self.sendLeaveRequest((last_addr))
+                success = self.sendLeaveRequest(last_addr)
             else:
-                success = self.sendLeaveRequest((last_addr, next_addr))
+                print("Sending leave request to {} and {}".format(last_addr, next_addr))
+                success = self.sendLeaveRequest(last_addr, next_addr)
         else:
             success = True
         print("Leaving leaveOverlay()")
