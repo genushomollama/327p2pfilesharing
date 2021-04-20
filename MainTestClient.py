@@ -129,7 +129,8 @@ if SHARED_FOLDER not in project_dir: # if the folder that will house the unified
     os.mkdir(SHARED_FOLDER)
 hosts_dir = os.listdir(SHARED_FOLDER)
 if MY_SHARED_FOLDER not in hosts_dir: # if the folder that will house the documents we add to file set does not exist then make it
-    os.mkdir(MY_SHARED_FOLDER)
+    shared_dir_location = SHARED_FOLDER + "/" + MY_SHARED_FOLDER
+    os.mkdir(shared_dir_location)
 populateManifest(MANIFEST, SHARED_FOLDER) # populate the MANIFEST object with the current set of files in the [outer] SHARED directory
 present = MANIFEST.getManifest() # FIXME do we need this or is it for debug purposes
 
