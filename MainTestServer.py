@@ -182,8 +182,8 @@ serverThread.start() # start the server thread
 Start the client thread.
 This will handle all communications initiated by this peer.
 '''
-clientThread = ClientThread(currentNode, CONTROL_PORT, MAX_READ_SIZE, MANIFEST) # declare client thread
-clientThread.start() # start the client thread
+# clientThread = ClientThread(currentNode, CONTROL_PORT, MAX_READ_SIZE, MANIFEST) # declare client thread
+# clientThread.start() # start the client thread
 
 '''
 Wait for user to signal to shutdown the program.
@@ -200,9 +200,9 @@ while not terminate:
 '''
 Make calls that signal the threads to perform cleanup operations and terminate the program.
 '''
-clientThread.cleanup()
+# clientThread.cleanup()
 serverThread.cleanup()
-clientThread.join()
+# clientThread.join()
 serverThread.join()
 
 print("Goodbye.")
