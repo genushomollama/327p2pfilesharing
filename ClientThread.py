@@ -249,7 +249,7 @@ class ClientThread(threading.Thread):
     Afterwards join() can be called to terminate the thread.
     '''
     def run(self):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         while not self._stopevent.isSet():
             logging.debug('ClientThread: Starting loop')
             manifest = self.request_manifest()  # request the manifest

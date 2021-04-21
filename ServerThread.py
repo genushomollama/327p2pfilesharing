@@ -2,6 +2,7 @@ import threading
 import socket
 import os
 import os.path
+import logging
 
 from Node import Node
 
@@ -134,17 +135,24 @@ class ServerThread(threading.Thread):
             msg = data.decode()  # put message into string form
 
             if "JOIN" in msg:
+                logging.debug("We received a JOIN request from {}".format(client_ip))
                 print("Entering the join branch")
                 if self.node.getNodeID() == 0:
+                    logging.debug("We are node 0, we are serving the request")
                     self.updatePrevious(self.node.getLast(), client_ip)
 
                     reply = "SUCCESS {} {}".format(self.network_size, self.node.getLast())
                     self.network_size += 1 # increment so that next assignable node id is ready
                     print("Sending this reply to client:", reply)
                     self.node.setLast(client_ip)
+                    logging.debug("Our last node is now {}".format(client_ip))
+                    if self.node.getNext() is None:
+                        self.node.setNext(client_ip)
+                        logging.debug("Our next node is now {}".format(client_ip))
                     self.network_size += 1
                     print("We successfully allowed the new node to join our overlay network")
                 else:
+                    logging.debug("We are not node 0, we aren't serving the request")
                     reply = "REDIRECT {} -1 -1".format(self.node.getNext())  # redirect supplicant to the next node in the list
                 conn.send(reply.encode('ascii'))
             elif msg.split()[0] == "UPDATE": # the topology has changed, accept new neighbors
@@ -180,6 +188,7 @@ class ServerThread(threading.Thread):
     '''
     def run(self):
         # bind, listen, while connection active accept
+        logging.basicConfig(level=logging.DEBUG)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_listen:  # open a socket for IPv4 TCP traffic
             server_listen.settimeout(self.SOCKET_TIMEOUT)
             server_listen.bind(("", 8091))  # bind the socket to the host name and server port
