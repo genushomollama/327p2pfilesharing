@@ -189,8 +189,8 @@ Start the Kademlia DHT. This will probably requires a new thread.
 Start the server thread.
 This will handle are incoming communications with clients (peers).
 '''
-# serverThread = ServerThread(currentNode, CONTROL_PORT, MAX_READ_SIZE, MANIFEST) # declare server thread
-# serverThread.start() # start the server thread
+serverThread = ServerThread(currentNode, CONTROL_PORT, MAX_READ_SIZE, MANIFEST) # declare server thread
+serverThread.start() # start the server thread
 
 '''
 Start the client thread.
@@ -215,9 +215,9 @@ while not terminate:
 Make calls that signal the threads to perform cleanup operations and terminate the program.
 '''
 clientThread.cleanup()
-# serverThread.cleanup()
+serverThread.cleanup()
 clientThread.join()
-# serverThread.join()
+serverThread.join()
 
 print("Goodbye.")
 
