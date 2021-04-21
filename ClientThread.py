@@ -3,6 +3,7 @@ import threading
 import socket
 import os
 import time
+import logging
 
 from Node import Node
 
@@ -90,21 +91,25 @@ class ClientThread(threading.Thread):
     This list will be returned to the caller.
     '''
     def checkManifest(self, recv_manifest):
-        print("Entering checkManifest()")
+        print("Entering checkManifest() this is what we got", recv_manifest)
         files = list()
         manifest = self.current_manifest.getManifest()
         # iterate through keys
         for dir in recv_manifest.keys():
+            # print("check ", dir)
             files_in_dir = list()
+            # print(files_in_dir)
             dir_exists = os.path.isdir(dir)# does dir exist
             if not dir_exists: # NO
                 files.append((dir, None)) # time to make records, make one for every item in dirs list, if none only make a arecord for that dir (dirname, None)
             else: # YES
-                files_in_dir = manifest[dir]# get contents of dir  in our manifest
-            for item in recv_manifest[dir]:# iterate through the items in recv_manifest[dir]
+                files_in_dir = manifest[dir] # get contents of dir in our manifest
+            for item in recv_manifest[dir]: # iterate through the items in recv_manifest[dir]
+                # print(item)
                 if item not in files_in_dir:
+                    # print("item was not in filedir")
                     files.append((dir, item)) # if any are missing, make a record for each
-        print("Leaving checkManifest")
+        print("Leaving checkManifest, this is what we got", files)
         return files # list of tuples [(dir1, file1), (dir3, file2), ...]
 
     '''
@@ -160,7 +165,7 @@ class ClientThread(threading.Thread):
                 if not os.path.exists(directory):
                     self.makeDirs(directory) # TODO test
                     downloaded_files.append(item)
-        print("Leaving download_files()")
+        print("Leaving download_files()", downloaded_files)
         return downloaded_files
 
     '''
@@ -169,13 +174,13 @@ class ClientThread(threading.Thread):
     to our manifest.
     '''
     def update_manifest(self, downloaded_files):
-        print("Entering update_manifest()")
+        print("Entering update_manifest()", downloaded_files)
         for item in downloaded_files:
             if item[1] is None:
                 self.current_manifest.addDir(item[0], list())
             else:
                 self.current_manifest.addFileToDir(item[0], item[1])
-        print('Leaving update_manifest()')
+        logging.debug('ClientThread: Leaving update_manifest() {}'.format(self.current_manifest.getManifest()))
 
     '''
     Send messages informing neighbor nodes that we are leaving the overlay.
@@ -241,12 +246,18 @@ class ClientThread(threading.Thread):
     Afterwards join() can be called to terminate the thread.
     '''
     def run(self):
+        logging.basicConfig(level=logging.DEBUG)
         while not self._stopevent.isSet():
+            logging.debug('ClientThread: Starting loop')
             manifest = self.request_manifest()  # request the manifest
             if manifest is not None:
+                logging.debug('ClientThread: Calling checkmanifest')
                 needed_files = self.checkManifest(manifest) # list of tuples containing (hostname, filepath)  # TODO we will end up with a list of files
                 # TODO we will make a call to the dht to locate a place to download each resource
+                logging.debug('ClientThread: calling download_files')
+                print("Sending needed files to the downloads", needed_files)
                 new_files = self.download_files(needed_files) # TODO we will download each needed resource, and put into the proper directory (add directory if necessary)
+                logging.debug('ClientThread: calling update_manifest')
                 self.update_manifest(new_files)  # update our manifest to reflect downloaded files
             time.sleep(self.sleep_time)# TODO we might need to make a call to sleep or something here, maybe use a scheduler
         clean_exit = self.leaveOverlay()  # TODO something with clean_exit, if everything went well should be True
