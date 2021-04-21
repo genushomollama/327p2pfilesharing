@@ -66,6 +66,8 @@ class ClientThread(threading.Thread):
     and then added to our manifest.
     '''
     def request_manifest(self):
+        logging.debug('ClientThread: entering request_manifest')
+        logging.debug('ClientThread: request_manifest from next node {}'.format(self.node.getNext()))
         manifest = None  # will be a dict() if request is successful
         reply = ""
         if self.node.getNext() is not None:
@@ -83,6 +85,7 @@ class ClientThread(threading.Thread):
                         receiving_data = False
             manifest = self.process_manifest(reply)
         print("We got the manifest", manifest)
+        logging.debug('ClientThread: leaving request_manifest we got this manifest {}'.format(manifest))
         return manifest
 
     '''
