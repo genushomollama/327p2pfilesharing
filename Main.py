@@ -1,30 +1,42 @@
+import logging
 import threading
 import re
 import os
 import socket
+import platform
 
 from Manifest import Manifest
 from Node import Node
-# import Functions
 from ServerThread import ServerThread
 from ClientThread import ClientThread
 
 '''
 Constants, port and address settings.
 '''
+# TODO pass debug status to the other threads so that debug statements aren't printed
+MAIN_LOGGING_LEVEL = logging.INFO
+CLIENT_LOGGING_LEVEL = logging.INFO
+SERVER_LOGGING_LEVEL = logging.INFO
+logging.basicConfig(level=MAIN_LOGGING_LEVEL)
+
 SHARED_FOLDER = "Shared"
 MANIFEST = Manifest()
 MY_SHARED_FOLDER = socket.gethostname()
+if platform.system() == 'Darwin':
+    addr_data = os.popen('ipconfig getifaddr en0') # Assumption: the mac is using the default interface
+    MY_SHARED_FOLDER = addr_data.read()
+    logging.info("Instead of hostname we will be identifiable by reachable network addresss {}".format(MY_SHARED_FOLDER))
+    logging.info("This is because on some Apple computers Bonjour is broken and cannot respond to the network hostname.")
+
 # TODO lets record our ip address here as well
 MAX_READ_SIZE = 2048 # this is the most bytes we will read from the network buffer at any given time, sending more could break the program. FIXME update this
 CONTROL_PORT = 8091 # server will bind, listen, and accept incoming connections on this port
+TIMEOUT_SEC = 5 # this is how many seconds our sockets will wait for a connection
 currentNode = Node() # contains the addressing info for this Node in the linked-list
 live_hosts = [] # node with nodeID of zero (the first node) will have none
 contactPeer = None # the live_host that we will select to contact
 
-'''
-Functions
-'''
+
 '''
 This function makes a call to arp for the arp table, it then makes a regex search for ip addresses, it returns
 a list of ip addresses resident in the arp table.
@@ -46,9 +58,9 @@ To invoke, provide the initialized manifest object and the filepath to the 'shar
 '''
 def populateManifest(manifest, wd):
     starting_dir = os.getcwd()
-    print("starting in", starting_dir)
+    logging.debug("starting in", starting_dir)
     os.chdir(wd)
-    print("moved to", os.getcwd())
+    logging.debug("moved to", os.getcwd())
     resident_files = list()
     for item in os.listdir():
         if os.path.isdir(item):
@@ -61,10 +73,12 @@ def populateManifest(manifest, wd):
 
 
 '''
+This function accepts a list of ip addresses (as strings) and port number and then scans
+the list of hosts for any running this program. Once one has been found, it will redirect
+us to the host on the p2p network  responsible for adding new nodes to the network.
 '''
-# TODO rewrite this function it is terrible
 def send_join_request(possiblePeer, CONTROL_PORT):
-    print("SEND_JOIN_REQUEST has been called on {}:{}".format(possiblePeer, CONTROL_PORT))
+    logging.info("SEND_JOIN_REQUEST has been called on {}:{}".format(possiblePeer, CONTROL_PORT))
     next_ip = None
     last_ip = None
     id = None
@@ -73,7 +87,7 @@ def send_join_request(possiblePeer, CONTROL_PORT):
     index = 0
     while not complete:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_scanner:
-            reply = ""
+            port_scanner.settimeout(TIMEOUT_SEC)
             try:
                 complete = True
                 port_scanner.connect((possiblePeer, CONTROL_PORT))
@@ -97,20 +111,18 @@ def send_join_request(possiblePeer, CONTROL_PORT):
                 else:
                     complete = True # FIXME why is this here?
                     raise Exception() # TODO learn how to do this right
-                print(reply.decode()) # TODO eviscerate line, for debug
-                # print the reply TODO destroy line
-            except OSError:
-                print("OSerror")  # many
-            except TimeoutError:
-                print("Connection timed out")  # 0
+                logging.debug(reply.decode()) # TODO eviscerate line, for debug
             except socket.timeout:
-                print("It was the socket.timeout thing that worked")  # 0
-            except ConnectionRefusedError or OSError:  # formerly many, OSerror catches most everything
-                print("Connection refused!")
+                logging.info("socket.timeout occurred, could not connect to {}".format(possiblePeer))
+            except TimeoutError:
+                logging.info("TimeoutError occurred, could not connect to {}".format(possiblePeer))
+            except OSError:
+                logging.info("OSError occurred, could not connect to {}".format(possiblePeer))
+            except ConnectionRefusedError:
+                logging.info("ConnectionRefusedError occurred, could not connect to {}".format(possiblePeer))
             finally:
                 port_scanner.close()
-    return (id, next_ip, last_ip)
-
+    return (id, next_ip, last_ip) # initialization data for our node
 
 
 '''
@@ -128,45 +140,35 @@ if MY_SHARED_FOLDER not in hosts_dir: # if the folder that will house the docume
 populateManifest(MANIFEST, SHARED_FOLDER) # populate the MANIFEST object with the current set of files in the [outer] SHARED directory
 present = MANIFEST.getManifest() # FIXME do we need this or is it for debug purposes
 
-print(present) # FIXME remove
-
-
+logging.debug("The current contents of our manifest {}".format(present)) # FIXME remove
 
 '''
 Scan the network for actively serving peers.
 If any are found, try to join that overlay network.
 If none are found, then start a new overlay network.
-The architecture of this network is that of a simple doubly linked-list.
+The architecture of this network is that of a simple doubly linked-list organized into a ring.
 '''
-# live_hosts = extractAddress() # check ARP table for other hosts on the LAN # FIXME start uncomment this block after debugging
-# print("Addresses extracted: ", live_hosts) # FIXME for debug purposes
-# if len(live_hosts) == 0: # start fresh network
-#     currentNode.setNodeID(0)
-# else: # attempt to join an existing network
-#     currentHost = 0 # contact lowest addressed host first
-#     searching = True
-#     while searching:
-#         contactPeer = live_hosts[currentHost]
-#         neighbor_data = send_join_request(contactPeer, CONTROL_PORT) # send a join request to the peer
-#         if neighbor_data[0] is not None: # this indicates a SUCCESS response was recieved
-#             currentNode.setNodeID(neighbor_data[0]) # populate data in Node object
-#             currentNode.setNext(neighbor_data[1])
-#             currentNode.setLast(neighbor_data[2])
-#             searching = False # TODO end update sections
-#         else:
-#             if currentHost >= len(live_hosts)-1: # no responses recieved, start a new overlay network
-#                 currentNode.setNodeID(0)
-#                 searching = False
-#             else:
-#                 currentHost += 1 # check the next host in the ARP table # FIXme end uncomment this block after debugging
-
-# FIXME start remove section DEBUG
-currentNode.setNodeID(0)
-if currentNode.getNext() is None:
-    print("No peers were found, we have started our own overlay network")
-else:
-    print("We have joined an overlay network, out node info:", currentNode.getNodeID(), currentNode.getNext(), currentNode.getLast())
-# FIXME end remove section DEBUG
+live_hosts = extractAddress() # check ARP table for other hosts on the LAN
+logging.info("Addresses we will attempt to connect to: {}".format(live_hosts))
+if len(live_hosts) == 0: # start fresh network
+    currentNode.setNodeID(0)
+else: # attempt to join an existing network
+    currentHost = 0 # contact lowest addressed host first
+    searching = True
+    while searching:
+        contactPeer = live_hosts[currentHost]
+        neighbor_data = send_join_request(contactPeer, CONTROL_PORT) # send a join request to the peer
+        if neighbor_data[0] is not None: # this indicates a SUCCESS response was recieved
+            currentNode.setNodeID(neighbor_data[0]) # populate data in Node object
+            currentNode.setNext(neighbor_data[1])
+            currentNode.setLast(neighbor_data[2])
+            searching = False # TODO end update sections
+        else:
+            if currentHost >= len(live_hosts)-1: # no responses recieved, start a new overlay network
+                currentNode.setNodeID(0)
+                searching = False
+            else:
+                currentHost += 1 # check the next host in the ARP table # FIXme end uncomment this block after debugging
 
 '''
 Start the Kademlia DHT. This will probably requires a new thread.
@@ -189,8 +191,8 @@ clientThread.start() # start the client thread
 
 '''
 Wait for user to signal to shutdown the program.
-Maybe set up a system to log messages to the cli. 
-If we do log messages then we should wait for the user to perform a keyboard interrupt, we can handle the 
+Maybe set up a system to log messages to the cli.
+If we do log messages then we should wait for the user to perform a keyboard interrupt, we can handle the
 cleanup in the 'except KeyboardInterrupt' block.
 '''
 terminate = False

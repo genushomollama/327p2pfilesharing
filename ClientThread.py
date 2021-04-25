@@ -73,6 +73,7 @@ class ClientThread(threading.Thread):
         if self.node.getNext() is not None:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_conn:  # open a socket for IPv4 TCP traffic
                 server_conn.settimeout(5)
+                # FIXME add a try except block right here!!!
                 server_conn.connect((self.node.getLast(), self.port))  # connect to the node pointed to by node.last
                 request = "MANIFEST VOID VOID" # expected request for a Manifest
                 server_conn.send(request.encode('ascii')) # send request
