@@ -88,6 +88,8 @@ class ClientThread(threading.Thread):
                     logging.error("THE LAST NODE {} COULD NOT BE REACHED".format(self.node.getLast()))
                 except socket.gaierror:
                     logging.error("THE ADDRESS OF LAST NODE {} WAS NOT VALID".format(self.node.getLast()))
+                except ConnectionRefusedError:
+                    logging.error("ConnectionRefusedError: Could not connect to the last node {}".format(self.node.getLast()))
             manifest = self.process_manifest(reply)
         logging.debug('ClientThread: leaving request_manifest we got this manifest {}'.format(manifest))
         return manifest
@@ -196,7 +198,7 @@ class ClientThread(threading.Thread):
     # TODO handle any network problems that could arise
     '''
     def sendLeaveRequest(self, last_addr, next_addr=None):
-        print("Entering sendLEaveREquest")
+        print("Entering sendLeaveRequest")
         success = False
         messages = []
         if next_addr is not None:
@@ -214,14 +216,23 @@ class ClientThread(threading.Thread):
         for i in range(len(messages)):
             print("Sending {} message".format(i))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as neighbor_conn:
-                print("Made connection")
-                neighbor_conn.connect((addrs[i], self.port))
-                neighbor_conn.send(messages[i].encode('ascii'))
-                # reply = neighbor_conn.recv(self.MAX_DATA_TRANS).decode()
-                # if reply is "SUCCESS":
-                #     success = True
-                # elif reply is "FAILURE":
-                #     success = False
+                try:
+                    print("Made connection to {}".format(addrs[i]))
+                    neighbor_conn.connect((addrs[i], self.port))
+                    neighbor_conn.send(messages[i].encode('ascii'))
+                    # reply = neighbor_conn.recv(self.MAX_DATA_TRANS).decode()
+                    # if reply is "SUCCESS":
+                    #     success = True
+                    # elif reply is "FAILURE":
+                    #     success = False
+                except socket.gaierror:
+                    logging.error("socket.gaierror occurred sending leave request to {}".format(addrs[i]))
+                except socket.timeout:
+                    logging.error("socket.timeout occurred sending leave request to {}".format(addrs[i]))
+                except ConnectionRefusedError:
+                    logging.error("ConnectionRefusedError occurred sending leave request to {}".format(addrs[i]))
+                except OSError:
+                    logging.error("OSerror occurred sending leave request to {}".format(addrs[i]))
         print("Finished sending leave requests, we were", success)
         return success
 
