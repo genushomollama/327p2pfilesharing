@@ -58,9 +58,9 @@ To invoke, provide the initialized manifest object and the filepath to the 'shar
 '''
 def populateManifest(manifest, wd):
     starting_dir = os.getcwd()
-    logging.debug("starting in", starting_dir)
+    logging.debug("starting in {}".format(starting_dir))
     os.chdir(wd)
-    logging.debug("moved to", os.getcwd())
+    logging.debug("moved to {}".format(os.getcwd()))
     resident_files = list()
     for item in os.listdir():
         if os.path.isdir(item):
