@@ -66,7 +66,7 @@ def populateManifest(manifest, wd):
         if os.path.isdir(item):
             populateManifest(manifest, item)
         else:
-            if item != ".DS_STORE":
+            if item != ".DS_Store":
                 resident_files.append(item)
     dir_name = 'Shared' + os.getcwd().split('Shared')[1] # FIXME get path to current directory, cut off everything before SHARED
     manifest.addDir(dir_name, resident_files) # FIXME get the full path to the dir for the key, starts at 'Shared/...'
