@@ -170,6 +170,8 @@ else: # attempt to join an existing network
             else:
                 currentHost += 1 # check the next host in the ARP table # FIXme end uncomment this block after debugging
 
+logging.debug("Our overlay data is: \nnodeID: {}\nlast neighbor: {}\nnext neighbor: {}".format(currentNode.getNodeID(), currentNode.getLast(), currentNode.getNext()))
+
 '''
 Start the Kademlia DHT. This will probably requires a new thread.
 '''

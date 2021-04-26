@@ -86,6 +86,8 @@ class ClientThread(threading.Thread):
                             receiving_data = False
                 except socket.timeout:
                     logging.error("THE LAST NODE {} COULD NOT BE REACHED".format(self.node.getLast()))
+                except socket.gaierror:
+                    logging.error("THE ADDRESS OF LAST NODE {} WAS NOT VALID".format(self.node.getLast()))
             manifest = self.process_manifest(reply)
         logging.debug('ClientThread: leaving request_manifest we got this manifest {}'.format(manifest))
         return manifest
