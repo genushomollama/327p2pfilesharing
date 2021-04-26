@@ -54,9 +54,10 @@ class ClientThread(threading.Thread):
         for line in lines:
             if len(line) > 0:
                 items = line.split()
-                current_key = items.pop(0)
-                current_values = items
-                output[current_key] = current_values
+                if len(items) > 0:
+                    current_key = items.pop(0)
+                    current_values = items
+                    output[current_key] = current_values
         return output
 
     '''
