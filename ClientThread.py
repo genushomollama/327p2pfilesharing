@@ -70,7 +70,7 @@ class ClientThread(threading.Thread):
         logging.debug('ClientThread: request_manifest from next node {}'.format(self.node.getNext()))
         manifest = None  # will be a dict() if request is successful
         reply = ""
-        if self.node.getNext() is not None:
+        if self.node.getLast() is not None:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_conn:  # open a socket for IPv4 TCP traffic
                 server_conn.settimeout(5)
                 try:
