@@ -104,7 +104,10 @@ def send_join_request(possiblePeer, CONTROL_PORT):
                 if status == "SUCCESS":
                     id = response[1]
                     next_ip = possiblePeer
-                    last_ip = response[2]
+                    if response[2] == "None":
+                        last_ip = possiblePeer
+                    else:
+                        last_ip = response[2]
                 elif status == "REDIRECT":
                     possiblePeer = response[1]
                     complete = False # make request to host we have been directed to
