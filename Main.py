@@ -14,7 +14,7 @@ from ClientThread import ClientThread
 Constants, port and address settings.
 '''
 # TODO pass debug status to the other threads so that debug statements aren't printed
-MAIN_LOGGING_LEVEL = logging.INFO
+MAIN_LOGGING_LEVEL = logging.DEBUG
 CLIENT_LOGGING_LEVEL = logging.INFO
 SERVER_LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=MAIN_LOGGING_LEVEL)
@@ -24,7 +24,7 @@ MANIFEST = Manifest()
 MY_SHARED_FOLDER = socket.gethostname()
 if platform.system() == 'Darwin':
     addr_data = os.popen('ipconfig getifaddr en0') # Assumption: the mac is using the default interface
-    MY_SHARED_FOLDER = addr_data.read()
+    MY_SHARED_FOLDER = addr_data.read().strip()
     logging.info("Instead of hostname we will be identifiable by reachable network addresss {}".format(MY_SHARED_FOLDER))
     logging.info("This is because on some Apple computers Bonjour is broken and cannot respond to the network hostname.")
 
