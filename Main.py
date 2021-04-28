@@ -14,7 +14,7 @@ from ClientThread import ClientThread
 Constants, port and address settings.
 '''
 # TODO pass debug status to the other threads so that debug statements aren't printed
-MAIN_LOGGING_LEVEL = logging.DEBUG
+MAIN_LOGGING_LEVEL = logging.ERROR
 CLIENT_LOGGING_LEVEL = logging.INFO
 SERVER_LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=MAIN_LOGGING_LEVEL)

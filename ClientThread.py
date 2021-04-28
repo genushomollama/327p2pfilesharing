@@ -189,6 +189,7 @@ class ClientThread(threading.Thread):
             if item[1] is None:
                 self.current_manifest.addDir(item[0], list())
             else:
+                logging.debug("{}".format(item))
                 self.current_manifest.addFileToDir(item[0], item[1])
         logging.debug('ClientThread: Leaving update_manifest() {}'.format(self.current_manifest.getManifest()))
 

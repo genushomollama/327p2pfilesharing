@@ -188,7 +188,7 @@ class ServerThread(threading.Thread):
     '''
     def run(self):
         # bind, listen, while connection active accept
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_listen:  # open a socket for IPv4 TCP traffic
             server_listen.settimeout(self.SOCKET_TIMEOUT)
             server_listen.bind(("", 8091))  # bind the socket to the host name and server port
