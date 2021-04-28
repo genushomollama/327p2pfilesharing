@@ -110,10 +110,15 @@ class ClientThread(threading.Thread):
             files_in_dir = list()
             # print(files_in_dir)
             dir_exists = os.path.isdir(dir)# does dir exist
+            dir_in_manifest = False # is the dir in the manifest already?
+            if dir in manifest.keys():
+                dir_in_manifest = True
             if not dir_exists: # NO
                 files.append((dir, None)) # time to make records, make one for every item in dirs list, if none only make a arecord for that dir (dirname, None)
-            else: # YES
+            elif dir_in_manifest: # YES
                 files_in_dir = manifest[dir] # get contents of dir in our manifest
+            else:
+                files_in_dir = list()
             for item in recv_manifest[dir]: # iterate through the items in recv_manifest[dir]
                 # print(item)
                 if item not in files_in_dir:
