@@ -25,7 +25,7 @@ MY_SHARED_FOLDER = socket.gethostname()
 if platform.system() == 'Darwin':
     addr_data = os.popen('ipconfig getifaddr en0') # Assumption: the mac is using the default interface
     MY_SHARED_FOLDER = addr_data.read().strip()
-    logging.info("Instead of hostname we will be identifiable by reachable network addresss {}".format(MY_SHARED_FOLDER))
+    logging.info("Instead of hostname we will be identifiable by reachable network addresses {}".format(MY_SHARED_FOLDER))
     logging.info("This is because on some Apple computers Bonjour is broken and cannot respond to the network hostname.")
 
 # TODO lets record our ip address here as well
@@ -162,13 +162,13 @@ else: # attempt to join an existing network
     while searching:
         contactPeer = live_hosts[currentHost]
         neighbor_data = send_join_request(contactPeer, CONTROL_PORT) # send a join request to the peer
-        if neighbor_data[0] is not None: # this indicates a SUCCESS response was recieved
+        if neighbor_data[0] is not None: # this indicates a SUCCESS response was received
             currentNode.setNodeID(neighbor_data[0]) # populate data in Node object
             currentNode.setNext(neighbor_data[1])
             currentNode.setLast(neighbor_data[2])
             searching = False # TODO end update sections
         else:
-            if currentHost >= len(live_hosts)-1: # no responses recieved, start a new overlay network
+            if currentHost >= len(live_hosts)-1: # no responses received, start a new overlay network
                 currentNode.setNodeID(0)
                 searching = False
             else:
