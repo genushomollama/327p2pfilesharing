@@ -17,25 +17,23 @@ Constants, port and address settings.
 MAIN_LOGGING_LEVEL = logging.ERROR
 CLIENT_LOGGING_LEVEL = logging.INFO
 SERVER_LOGGING_LEVEL = logging.INFO
-logging.basicConfig(level=MAIN_LOGGING_LEVEL)
+logging.basicConfig(level=logging.ERROR)
 
 SHARED_FOLDER = "Shared"
 MANIFEST = Manifest()
 MY_SHARED_FOLDER = socket.gethostname()
-if platform.system() == 'Darwin':
+if platform.system() == 'Darwin': # TODO add a similar block for linux and Windows
     addr_data = os.popen('ipconfig getifaddr en0') # Assumption: the mac is using the default interface
     MY_SHARED_FOLDER = addr_data.read().strip()
     logging.info("Instead of hostname we will be identifiable by reachable network addresses {}".format(MY_SHARED_FOLDER))
     logging.info("This is because on some Apple computers Bonjour is broken and cannot respond to the network hostname.")
 
-# TODO lets record our ip address here as well
 MAX_READ_SIZE = 2048 # this is the most bytes we will read from the network buffer at any given time, sending more could break the program. FIXME update this
 CONTROL_PORT = 8091 # server will bind, listen, and accept incoming connections on this port
 TIMEOUT_SEC = 5 # this is how many seconds our sockets will wait for a connection
 currentNode = Node() # contains the addressing info for this Node in the linked-list
 live_hosts = [] # node with nodeID of zero (the first node) will have none
 contactPeer = None # the live_host that we will select to contact
-
 
 '''
 This function makes a call to arp for the arp table, it then makes a regex search for ip addresses, it returns
@@ -68,7 +66,7 @@ def populateManifest(manifest, wd):
         else:
             if item != ".DS_Store":
                 resident_files.append(item)
-    dir_name = 'Shared' + os.getcwd().split('Shared')[1] # FIXME get path to current directory, cut off everything before SHARED
+    dir_name = 'Shared' + os.getcwd().split('Shared')[1] # FIXME get path to current directory, cut off everything before 'Shared'
     manifest.addDir(dir_name, resident_files) # FIXME get the full path to the dir for the key, starts at 'Shared/...'
     os.chdir(starting_dir)
 
@@ -142,9 +140,9 @@ if MY_SHARED_FOLDER not in hosts_dir: # if the folder that will house the docume
     shared_dir_location = SHARED_FOLDER + "/" + MY_SHARED_FOLDER
     os.mkdir(shared_dir_location)
 populateManifest(MANIFEST, SHARED_FOLDER) # populate the MANIFEST object with the current set of files in the [outer] SHARED directory
-present = MANIFEST.getManifest() # FIXME do we need this or is it for debug purposes
+present = MANIFEST.getManifest()
 
-logging.debug("The current contents of our manifest {}".format(present)) # FIXME remove
+logging.debug("The current contents of our manifest {}".format(present))
 
 '''
 Scan the network for actively serving peers.
@@ -166,13 +164,13 @@ else: # attempt to join an existing network
             currentNode.setNodeID(neighbor_data[0]) # populate data in Node object
             currentNode.setNext(neighbor_data[1])
             currentNode.setLast(neighbor_data[2])
-            searching = False # TODO end update sections
+            searching = False
         else:
             if currentHost >= len(live_hosts)-1: # no responses received, start a new overlay network
                 currentNode.setNodeID(0)
                 searching = False
             else:
-                currentHost += 1 # check the next host in the ARP table # FIXme end uncomment this block after debugging
+                currentHost += 1 # check the next host in the ARP table
 
 logging.debug("Our overlay data is: \nnodeID: {}\nlast neighbor: {}\nnext neighbor: {}".format(currentNode.getNodeID(), currentNode.getLast(), currentNode.getNext()))
 

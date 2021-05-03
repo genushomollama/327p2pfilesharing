@@ -141,38 +141,41 @@ class ClientThread(threading.Thread):
                     hostname = intermediate_dirs[1]
                     # connect to host and download the file
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as neighbor_conn:
-                        logging.debug("We have a opened a connection to the other host to get {}".format(filename))
-                        neighbor_conn.connect((hostname, self.port))
-                        file_location = directory + "/" + filename
-                        request = "FILE {}".format(file_location)
-                        neighbor_conn.send(request.encode('ascii'))  # request file from host
-                        reply = neighbor_conn.recv(self.MAX_DATA_TRANS).decode().split()
+                        try:
+                            logging.debug("We have a opened a connection to the other host to get {}".format(filename))
+                            neighbor_conn.connect((hostname, self.port))
+                            file_location = directory + "/" + filename
+                            request = "FILE {}".format(file_location)
+                            neighbor_conn.send(request.encode('ascii'))  # request file from host
+                            reply = neighbor_conn.recv(self.MAX_DATA_TRANS).decode().split()
 
-                        if len(reply) == 2:
-                            if reply[0] == "SUCCESS":
-                                file_size = int(reply[1])
-                                file_in = open(file_location, "wb")  # download location to filepath
-                                num_recv_calls = 0 # number of calls to recv necessary to download file
-                                recv_calls_made = 0 # number of calls to recv that we have made
-                                if file_size < self.MAX_DATA_TRANS:
-                                    num_recv_calls = 1
+                            if len(reply) == 2:
+                                if reply[0] == "SUCCESS":
+                                    file_size = int(reply[1])
+                                    file_in = open(file_location, "wb")  # download location to filepath
+                                    num_recv_calls = 0 # number of calls to recv necessary to download file
+                                    recv_calls_made = 0 # number of calls to recv that we have made
+                                    if file_size < self.MAX_DATA_TRANS:
+                                        num_recv_calls = 1
+                                    else:
+                                        num_recv_calls = math.ceil(file_size/self.MAX_DATA_TRANS)
+                                    while recv_calls_made < num_recv_calls:
+                                        data_in = neighbor_conn.recv(self.MAX_DATA_TRANS)  # check buffer for more data
+                                        recv_calls_made += 1
+                                        file_in.write(data_in)  # write the data to the file
+                                    logging.debug("We have finished downloading the file {}".format(filename))
+                                    file_in.close()
+                                    downloaded_files.append(item)
                                 else:
-                                    num_recv_calls = math.ceil(file_size/self.MAX_DATA_TRANS)
-                                while recv_calls_made < num_recv_calls:
-                                    data_in = neighbor_conn.recv(self.MAX_DATA_TRANS)  # check buffer for more data
-                                    recv_calls_made += 1
-                                    file_in.write(data_in)  # write the data to the file
-                                logging.debug("We have finished downloading the file {}".format(filename))
-                                file_in.close()
-                                downloaded_files.append(item)
+                                    logging.error("The serving peer can not serve the file {}/{}".format(directory, filename))
                             else:
-                                logging.error("The serving peer can not serve the file {}/{}".format(directory, filename))
-                        else:
-                            logging.error("The request for the file {}/{} was met with an expected response".format(directory, filename))
+                                logging.error("The request for the file {}/{} was met with an expected response".format(directory, filename))
+                        except Exception as connection_error:
+                            logging.error("Failed to download the file {}/{} due to the following error:\v{}".format(directory, filename, connection_error))
             else:
                 if not os.path.exists(directory):
-                    self.makeDirs(directory)
-                    downloaded_files.append(item)
+                    self.makeDirs(directory) # recursively generate the directory path
+                    downloaded_files.append(item) # update the manifest entry
         logging.debug("Leaving download_files() with the following files {}".format(downloaded_files))
         return downloaded_files
 
@@ -259,7 +262,7 @@ class ClientThread(threading.Thread):
     Afterwards join() can be called to terminate the thread.
     '''
     def run(self):
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG)
         while not self._stopevent.isSet():
             logging.debug('ClientThread: Starting loop')
             manifest = self.request_manifest()  # request the manifest
