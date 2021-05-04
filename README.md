@@ -28,12 +28,18 @@ It is written in python, and uses only low-level socket calls in all connections
 
 ## How it works
 ### Network Architecture
+
+<p align="center">  <img src="https://raw.githubusercontent.com/genushomollama/327p2pfilesharing/main/overlay.png">  </p>
+
 -   each host is a node in a doubly linked list 
 	-  each node has a unique ID
 	-  the node with an ID of 0 is responsible for admitting new nodes into the network
 
 ### Program Structure
 Three or more threads of execution are taking place most of the time in this program. The most important are Main, ClientThread, and ServerThread.
+
+<p align="center">  <img src="https://raw.githubusercontent.com/genushomollama/327p2pfilesharing/main/threads.png">  </p>
+
 1. Main:
 	- Searches ARP table for other peers on network, contacts each host until a peer is found, in the case no peers are found a new overlay network is started in which this host will have the id of 0
 	- Launches ServerThread
