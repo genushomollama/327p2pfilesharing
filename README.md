@@ -4,9 +4,9 @@ What is this?
 This program is a peer-to-peer filesharing program for simple SOHO LANs.
 It is written in python, uses only low-level socket calls in all connections.
 
-How to use
-1.) clone project
-2.) optional: 
+How to use< br/>
+1.) clone project< br/>
+2.) optional: < br/>
 Make a directory within '/Shared', the name should be the reachable ip address of of the host (as in an ipv4 address either obtained from a DHCP lease or from the host itself, i.e. APIPA), a resolvable hostname or alias can also serve this purpose. For example, if the address of the local host is 192.168.0.112 then the operator could issue the  command mkdir Shared/192.168.0.112. The operator can put any files they wish to share with other peers on the network in this directory.
 Note: if you choose to skip this step the program will make the appropriate directory at runtime. 
 3.) run the program with the following command python3 Main.py
