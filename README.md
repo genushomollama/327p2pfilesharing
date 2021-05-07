@@ -26,6 +26,8 @@ It is written in python, and uses only low-level socket calls in all connections
 ## Bugs and current issues
 -   Calls to decode() fail when handling multimedia objects, damaging the contents of those received files, functionality must be added to handle encodings involving non utf-8 characters. This results in some distortion in .png images that have been downloaded.
 
+<p align="center">  <img src="https://github.com/genushomollama/327p2pfilesharing/blob/main/multimedia_bug.png?raw=true">  </p>
+
 ## How it works
 ### Network Architecture
 
