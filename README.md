@@ -15,7 +15,7 @@ It is written in python, and uses only low-level socket calls in all connections
 	
 	Note: if you choose to skip this step the program will make the appropriate directory at runtime. 
 3. Run the program with the following command `python3 Main.py` 
-4. The program will prompt you to enter the command exit to terminate the program. In the current iteration of this project terminating the program without entering the exit command may very well break the overlay network, in which case the program would have to simply be restarted on some of the hosts running belonging to the network (otherwise, no harm done).
+4. The program will prompt you to enter the command exit to terminate the program. In the current iteration of this project terminating the program without entering the exit command may very well break the overlay network, in which case the program would have to simply be restarted on some of the hosts belonging to the network (otherwise, no harm done).
 
 ## Next steps:
 -   use the Kademlia DHT to perform optimization
