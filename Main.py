@@ -17,7 +17,7 @@ Constants, port and address settings.
 MAIN_LOGGING_LEVEL = logging.ERROR
 CLIENT_LOGGING_LEVEL = logging.INFO
 SERVER_LOGGING_LEVEL = logging.INFO
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 
 SHARED_FOLDER = "Shared"
 MANIFEST = Manifest()

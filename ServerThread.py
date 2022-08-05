@@ -38,7 +38,7 @@ class ServerThread(threading.Thread):
                 updater.connect((neighbor, 8091))
                 updater.send(message.encode('ascii'))
                 reply = updater.recv(self.MAX_DATA_TRANS).decode().strip()
-                if reply is "SUCCESS":
+                if reply == "SUCCESS":
                     success = True
             return success
         else:
@@ -56,7 +56,7 @@ class ServerThread(threading.Thread):
             decrementer.connect((self.node.getNext(), 8091))
             decrementer.send(message.encode('ascii'))
             reply = decrementer.recv(self.MAX_DATA_TRANS).decode().strip()
-            if reply is "SUCCESS":
+            if reply == "SUCCESS":
                 success = True
         return success
 
