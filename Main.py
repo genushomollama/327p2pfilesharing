@@ -4,11 +4,16 @@ import re
 import os
 import socket
 import platform
+import time
+import queue
 
 from Manifest import Manifest
 from Node import Node
 from ServerThread import ServerThread
 from ClientThread import ClientThread
+
+import time
+start_time = time.time()
 
 '''
 Constants, port and address settings.
@@ -17,7 +22,7 @@ Constants, port and address settings.
 MAIN_LOGGING_LEVEL = logging.ERROR
 CLIENT_LOGGING_LEVEL = logging.INFO
 SERVER_LOGGING_LEVEL = logging.INFO
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 SHARED_FOLDER = "Shared"
 MANIFEST = Manifest()
@@ -51,24 +56,21 @@ def extractAddress():
     return hosts
 
 '''
-This method recursively populates the Manifest object in Main.
-To invoke, provide the initialized manifest object and the filepath to the 'shared' folder.
+This method accepts a manifest object and a filepath to a directory. 
+Using a queue and os.scanDir, it iterates through the directory and its subdirectories, populating the manifest object with data including the filepaths 
+and their corresponding ctimes, and mtimes.
 '''
-def populateManifest(manifest, wd):
-    starting_dir = os.getcwd()
-    logging.debug("starting in {}".format(starting_dir))
-    os.chdir(wd)
-    logging.debug("moved to {}".format(os.getcwd()))
-    resident_files = list()
-    for item in os.listdir():
-        if os.path.isdir(item):
-            populateManifest(manifest, item)
-        else:
-            if item != ".DS_Store":
-                resident_files.append(item)
-    dir_name = 'Shared' + os.getcwd().split('Shared')[1] # FIXME get path to current directory, cut off everything before 'Shared'
-    manifest.addDir(dir_name, resident_files) # FIXME get the full path to the dir for the key, starts at 'Shared/...'
-    os.chdir(starting_dir)
+def populateManifest(manifest, wd="."):
+    q = queue.Queue()
+    q.put(wd)
+
+    while not q.empty():
+        current_dir = q.get()
+        for item in os.scandir(current_dir):
+            if item.is_dir():
+                q.put(item.path)
+            else:
+                manifest.addFile(item.path, item.stat().st_ctime, item.stat().st_mtime)
 
 
 '''
@@ -150,7 +152,7 @@ If any are found, try to join that overlay network.
 If none are found, then start a new overlay network.
 The architecture of this network is that of a simple doubly linked-list organized into a ring.
 '''
-live_hosts = extractAddress() # check ARP table for other hosts on the LAN
+# live_hosts = extractAddress() # check ARP table for other hosts on the LAN
 logging.info("Addresses we will attempt to connect to: {}".format(live_hosts))
 if len(live_hosts) == 0: # start fresh network
     currentNode.setNodeID(0)
@@ -172,13 +174,7 @@ else: # attempt to join an existing network
             else:
                 currentHost += 1 # check the next host in the ARP table
 
-logging.debug("Our overlay data is: \nnodeID: {}\nlast neighbor: {}\nnext neighbor: {}".format(currentNode.getNodeID(), currentNode.getLast(), currentNode.getNext()))
-
-'''
-Start the Kademlia DHT. This will probably requires a new thread.
-'''
-# TODO Kademlia DHT
-
+print("--- %s seconds ---" % (time.time() - start_time))
 '''
 Start the server thread.
 This will handle are incoming communications with clients (peers).
